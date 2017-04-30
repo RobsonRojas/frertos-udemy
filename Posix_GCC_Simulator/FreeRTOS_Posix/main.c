@@ -124,7 +124,6 @@
 #include "AsyncIO/PosixMessageQueueIPC.h"
 #include "AsyncIO/AsyncIOSerial.h"
 
-
 /* Priority definitions for the tasks in the demo application. */
 #define mainLED_TASK_PRIORITY		( tskIDLE_PRIORITY + 1 )
 #define mainCREATOR_TASK_PRIORITY	( tskIDLE_PRIORITY + 3 )
@@ -182,231 +181,81 @@ static unsigned long uxQueueSendPassedCount = 0;
 static int iSerialReceive = 0;
 /*-----------------------------------------------------------*/
 
-
-
-
-/* Used as a loop counter to create a very crude delay. */
-#define mainDELAY_LOOP_COUNT		( 0xfffff )
-
-/* The task functions prototype*/
-void vTask1( void *pvParameters );
-void vTask2( void *pvParameters );
-void vAssertCalled( unsigned long ulLine, const char * const pcFileName );
-static portBASE_TYPE xTraceRunning = pdTRUE;
-
 int main( void )
 {
+xTaskHandle hUDPTask, hMQTask, hSerialTask;
+xQueueHandle xUDPReceiveQueue = NULL, xIPCQueue = NULL, xSerialRxQueue = NULL;
+int iSocketReceive = 0;
+struct sockaddr_in xReceiveAddress;
 
+	/* Initialise hardware and utilities. */
+	vParTestInitialise();
+	vPrintInitialise();
 
-	/* Create one of the two tasks. */
-	xTaskCreate(	vTask1,		/* Pointer to the function that implements the task. */
-					"Task 1",	/* Text name for the task.  This is to facilitate debugging only. */
-					240,		/* Stack depth in words. */
-					NULL,		/* We are not using the task parameter. */
-					1,			/* This task will run at priority 1. */
-					NULL );		/* We are not using the task handle. */
+	/* Initialise Receives sockets. */
+	xReceiveAddress.sin_family = AF_INET;
+	xReceiveAddress.sin_addr.s_addr = INADDR_ANY;
+	xReceiveAddress.sin_port = htons( mainUDP_PORT );
 
-	/* Create the other task in exactly the same way. */
-	xTaskCreate( vTask2, "Task 2", 240, NULL, 1, NULL );
+	/* Set-up the Receive Queue and open the socket ready to receive. */
+	xUDPReceiveQueue = xQueueCreate( 2, sizeof ( xUDPPacket ) );
+	iSocketReceive = iSocketOpenUDP( vUDPReceiveAndDeliverCallback, xUDPReceiveQueue, &xReceiveAddress );
 
-	/* Start the scheduler so our tasks start executing. */
+	/* Remember to open a whole in your Firewall to be able to receive!!! */
+
+	/* Set-up the IPC Message queue. */
+	xIPCQueue = xQueueCreate( 2, sizeof( xMessageObject ) );
+	xMessageQueuePipeHandle = xPosixIPCOpen( "/Local_Loopback", vMessageQueueReceive, xIPCQueue );
+	vPosixIPCEmpty( xMessageQueuePipeHandle );
+
+	/* Set-up the Serial Console Echo task */
+	if ( pdTRUE == lAsyncIOSerialOpen( "/dev/ttyS0", &iSerialReceive ) )
+	{
+		xSerialRxQueue = xQueueCreate( 2, sizeof ( unsigned char ) );
+		(void)lAsyncIORegisterCallback( iSerialReceive, vAsyncSerialIODataAvailableISR, xSerialRxQueue );
+	}
+
+	/* CREATE ALL THE DEMO APPLICATION TASKS. */
+	vStartMathTasks( tskIDLE_PRIORITY );
+	vStartPolledQueueTasks( mainQUEUE_POLL_PRIORITY );
+	vCreateBlockTimeTasks();
+	vStartSemaphoreTasks( mainSEMAPHORE_TASK_PRIORITY );
+	vStartMultiEventTasks();
+	vStartQueuePeekTasks();
+	vStartBlockingQueueTasks( mainQUEUE_BLOCK_PRIORITY );
+#if mainCPU_INTENSIVE_TASKS == 1
+	vStartRecursiveMutexTasks();
+	vStartDynamicPriorityTasks();
+	vStartGenericQueueTasks( mainGENERIC_QUEUE_PRIORITY );
+	vStartCountingSemaphoreTasks();
+#endif
+
+	/* Create the co-routines that communicate with the tick hook. */
+	vStartHookCoRoutines();
+
+	/* Create the "Print" task as described at the top of the file. */
+	xTaskCreate( vErrorChecks, "Print", configMINIMAL_STACK_SIZE, NULL, mainPRINT_TASK_PRIORITY, NULL );
+
+	/* This task has to be created last as it keeps account of the number of tasks
+	it expects to see running. */
+#if mainUSE_SUICIDAL_TASKS_DEMO == 1
+	vCreateSuicidalTasks( mainCREATOR_TASK_PRIORITY );
+#endif
+
+	/* Create a Task which waits to receive messages and sends its own when it times out. */
+	xTaskCreate( prvUDPTask, "UDPRxTx", configMINIMAL_STACK_SIZE, xUDPReceiveQueue, tskIDLE_PRIORITY + 1, &hUDPTask );
+
+	/* Create a Task which waits to receive messages and sends its own when it times out. */
+	xTaskCreate( prvMessageQueueTask, "MQ RxTx", configMINIMAL_STACK_SIZE, xIPCQueue, tskIDLE_PRIORITY + 1, &hMQTask );
+
+	/* Create a Task which waits to receive bytes. */
+	xTaskCreate( prvSerialConsoleEchoTask, "SerialRx", configMINIMAL_STACK_SIZE, xSerialRxQueue, tskIDLE_PRIORITY + 4, &hSerialTask );
+
+	/* Set the scheduler running.  This function will not return unless a task calls vTaskEndScheduler(). */
 	vTaskStartScheduler();
 
-	/* If all is well we will never reach here as the scheduler will now be
-	running.  If we do reach here then it is likely that there was insufficient
-	heap available for the idle task to be created. */
-	for( ;; );
-
-
-//xTaskHandle hUDPTask, hMQTask, hSerialTask;
-//xQueueHandle xUDPReceiveQueue = NULL, xIPCQueue = NULL, xSerialRxQueue = NULL;
-//int iSocketReceive = 0;
-//struct sockaddr_in xReceiveAddress;
-//
-//	/* Initialise hardware and utilities. */
-//	vParTestInitialise();
-//	vPrintInitialise();
-//
-//	/* Initialise Receives sockets. */
-//	xReceiveAddress.sin_family = AF_INET;
-//	xReceiveAddress.sin_addr.s_addr = INADDR_ANY;
-//	xReceiveAddress.sin_port = htons( mainUDP_PORT );
-//
-//	/* Set-up the Receive Queue and open the socket ready to receive. */
-//	xUDPReceiveQueue = xQueueCreate( 2, sizeof ( xUDPPacket ) );
-//	iSocketReceive = iSocketOpenUDP( vUDPReceiveAndDeliverCallback, xUDPReceiveQueue, &xReceiveAddress );
-//
-//	/* Remember to open a whole in your Firewall to be able to receive!!! */
-//
-//	/* Set-up the IPC Message queue. */
-//	xIPCQueue = xQueueCreate( 2, sizeof( xMessageObject ) );
-//	xMessageQueuePipeHandle = xPosixIPCOpen( "/Local_Loopback", vMessageQueueReceive, xIPCQueue );
-//	vPosixIPCEmpty( xMessageQueuePipeHandle );
-//
-//	/* Set-up the Serial Console Echo task */
-//	if ( pdTRUE == lAsyncIOSerialOpen( "/dev/ttyS0", &iSerialReceive ) )
-//	{
-//		xSerialRxQueue = xQueueCreate( 2, sizeof ( unsigned char ) );
-//		(void)lAsyncIORegisterCallback( iSerialReceive, vAsyncSerialIODataAvailableISR, xSerialRxQueue );
-//	}
-//
-//	/* CREATE ALL THE DEMO APPLICATION TASKS. */
-//	vStartMathTasks( tskIDLE_PRIORITY );
-//	vStartPolledQueueTasks( mainQUEUE_POLL_PRIORITY );
-//	vCreateBlockTimeTasks();
-//	vStartSemaphoreTasks( mainSEMAPHORE_TASK_PRIORITY );
-//	vStartMultiEventTasks();
-//	vStartQueuePeekTasks();
-//	vStartBlockingQueueTasks( mainQUEUE_BLOCK_PRIORITY );
-//#if mainCPU_INTENSIVE_TASKS == 1
-//	vStartRecursiveMutexTasks();
-//	vStartDynamicPriorityTasks();
-//	vStartGenericQueueTasks( mainGENERIC_QUEUE_PRIORITY );
-//	vStartCountingSemaphoreTasks();
-//#endif
-//
-//	/* Create the co-routines that communicate with the tick hook. */
-//	vStartHookCoRoutines();
-//
-//	/* Create the "Print" task as described at the top of the file. */
-//	xTaskCreate( vErrorChecks, "Print", configMINIMAL_STACK_SIZE, NULL, mainPRINT_TASK_PRIORITY, NULL );
-//
-//	/* This task has to be created last as it keeps account of the number of tasks
-//	it expects to see running. */
-//#if mainUSE_SUICIDAL_TASKS_DEMO == 1
-//	vCreateSuicidalTasks( mainCREATOR_TASK_PRIORITY );
-//#endif
-//
-//	/* Create a Task which waits to receive messages and sends its own when it times out. */
-//	xTaskCreate( prvUDPTask, "UDPRxTx", configMINIMAL_STACK_SIZE, xUDPReceiveQueue, tskIDLE_PRIORITY + 1, &hUDPTask );
-//
-//	/* Create a Task which waits to receive messages and sends its own when it times out. */
-//	xTaskCreate( prvMessageQueueTask, "MQ RxTx", configMINIMAL_STACK_SIZE, xIPCQueue, tskIDLE_PRIORITY + 1, &hMQTask );
-//
-//	/* Create a Task which waits to receive bytes. */
-//	xTaskCreate( prvSerialConsoleEchoTask, "SerialRx", configMINIMAL_STACK_SIZE, xSerialRxQueue, tskIDLE_PRIORITY + 4, &hSerialTask );
-//
-//	/* Set the scheduler running.  This function will not return unless a task calls vTaskEndScheduler(). */
-//	vTaskStartScheduler();
-//
-//	return 1;
+	return 1;
 }
-
-
-
-/*-----------------------------------------------------------*/
-
-void vTask1( void *pvParameters )
-{
-volatile unsigned long ul;
-
-	/* As per most tasks, this task is implemented in an infinite loop. */
-	for( ;; )
-	{
-		/* Print out the name of this task. */
-		printf( "Task 1 is running\n" );
-
-
-		/* Delay for a period. */
-		for( ul = 0; ul < mainDELAY_LOOP_COUNT; ul++ )
-		{
-			/* This loop is just a very crude delay implementation.  There is
-			nothing to do in here.  Later exercises will replace this crude
-			loop with a proper delay/sleep function. */
-		}
-	}
-
-	/* we have not used vTaskDelete() function here */
-
-}
-/*-----------------------------------------------------------*/
-
-void vTask2( void *pvParameters )
-{
-volatile unsigned long ul;
-
-	/* As per most tasks, this task is implemented in an infinite loop. */
-	for( ;; )
-	{
-		/* Print out the name of this task. */
-		printf( "Task 2 is running\n" );
-
-		/* Delay for a period. */
-		for( ul = 0; ul < mainDELAY_LOOP_COUNT; ul++ )
-		{
-			/* This loop is just a very crude delay implementation.  There is
-			nothing to do in here.  Later exercises will replace this crude
-			loop with a proper delay/sleep function. */
-		}
-	}
-}
-/*-----------------------------------------------------------*/
-
-void vApplicationMallocFailedHook( void )
-{
-	/* This function will only be called if an API call to create a task, queue
-	or semaphore fails because there is too little heap RAM remaining. */
-	for( ;; );
-}
-/*-----------------------------------------------------------*/
-
-void vApplicationStackOverflowHook( xTaskHandle *pxTask, signed char *pcTaskName )
-{
-	/* This function will only be called if a task overflows its stack.  Note
-	that stack overflow checking does slow down the context switch
-	implementation. */
-	for( ;; );
-}
-/*-----------------------------------------------------------*/
-
-//void vApplicationIdleHook( void )
-//{
-//	/* This example does not use the idle hook to perform any processing. */
-//}
-/*-----------------------------------------------------------*/
-
-//void vApplicationTickHook( void )
-//{
-//	/* This example does not use the tick hook to perform any processing. */
-//}
-
-
-
-void vAssertCalled( unsigned long ulLine, const char * const pcFileName )
-{
-static portBASE_TYPE xPrinted = pdFALSE;
-volatile uint32_t ulSetToNonZeroInDebuggerToContinue = 0;
-
-	/* Parameters are not used. */
-	( void ) ulLine;
-	( void ) pcFileName;
-
- 	taskENTER_CRITICAL();
-	{
-		/* Stop the trace recording. */
-		if( xPrinted == pdFALSE )
-		{
-			xPrinted = pdTRUE;
-			if( xTraceRunning == pdTRUE )
-			{
-			//	vTraceStop();
-				//prvSaveTraceFile();
-			}
-		}
-
-		/* You can step out of this function to debug the assertion by using
-		the debugger to set ulSetToNonZeroInDebuggerToContinue to a non-zero
-		value. */
-		while( ulSetToNonZeroInDebuggerToContinue == 0 )
-		{
-			__asm volatile( "NOP" );
-			__asm volatile( "NOP" );
-		}
-	}
-	taskEXIT_CRITICAL();
-}
-/*-----------------------------------------------------------*/
-
 /*-----------------------------------------------------------*/
 
 static portBASE_TYPE prvExampleTaskHook( void * pvParameter )
