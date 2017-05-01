@@ -192,6 +192,9 @@ const char *pcTextToTask2 = "Task 2 is running\n";
 /* The task functions prototype*/
 void vTask1( void *pvParameters );
 void vTask2( void *pvParameters );
+
+// used to hold the handle of task 2
+xTaskHandle xTask2Handle;
 /*-----------------------------------------------------------*/
 
 int main( void )
@@ -274,12 +277,12 @@ int main( void )
 	xTaskCreate(	vTask1,		/* Pointer to the function that implements the task. */
 					"Task 1",	/* Text name for the task.  This is to facilitate debugging only. */
 					240,		/* Stack depth in words. */
-					(void*)pcTextToTask1,		/* We are not using the task parameter. */
+					NULL,		/* We are not using the task parameter. */
 					1,			/* This task will run at priority 1. */
 					NULL );		/* We are not using the task handle. */
 
 	/* Create the other task in exactly the same way. */
-	xTaskCreate( vTask2, "Task 2", 240, (void*)pcTextToTask2, 1, NULL );
+	//xTaskCreate( vTask2, "Task 2", 240, (void*)pcTextToTask2, 1, NULL );
 
 	/* Start the scheduler so our tasks start executing. */
 	vTaskStartScheduler();
@@ -298,15 +301,20 @@ int main( void )
 void vTask1( void *pvParameters )
 {
 volatile unsigned long ul;
-char *pcTaskName;
+const portTickType xDelay100ms = 100 / portTICK_RATE_MS;
+//char *pcTaskName;
 
-	pcTaskName = (char*)pvParameters;
+	//pcTaskName = (char*)pvParameters;
 	/* As per most tasks, this task is implemented in an infinite loop. */
 	for( ;; )
 	{
 		/* Print out the name of this task. */
-		printf( "%s\n", pcTaskName );
+		printf( "Task1 is running\n" );
 
+		xTaskCreate(vTask2, "Task 2", 240, NULL, 2, &xTask2Handle);
+
+		// not working on gcc simulator
+		//vTaskDelay(xDelay100ms);
 
 		/* Delay for a period. */
 		for( ul = 0; ul < mainDELAY_LOOP_COUNT; ul++ )
@@ -324,25 +332,29 @@ char *pcTaskName;
 
 void vTask2( void *pvParameters )
 {
-	char *pcTaskName;
-volatile unsigned long ul;
+	//char *pcTaskName;
+/*volatile unsigned long ul;*/
 
-	pcTaskName = (char*)pvParameters;
+	//pcTaskName = (char*)pvParameters;
 
-	/* As per most tasks, this task is implemented in an infinite loop. */
-	for( ;; )
-	{
-		/* Print out the name of this task. */
-		printf( "%s\n", pcTaskName );
+	printf( "Task 2 is running and about to delete\n" );
 
-		/* Delay for a period. */
-		for( ul = 0; ul < mainDELAY_LOOP_COUNT; ul++ )
-		{
-			/* This loop is just a very crude delay implementation.  There is
-			nothing to do in here.  Later exercises will replace this crude
-			loop with a proper delay/sleep function. */
-		}
-	}
+	vTaskDelete(xTask2Handle);
+
+	// /* As per most tasks, this task is implemented in an infinite loop. */
+	// for( ;; )
+	// {
+	// 	/* Print out the name of this task. */
+	// 	printf( "%s\n", pcTaskName );
+
+	// 	/* Delay for a period. */
+	// 	for( ul = 0; ul < mainDELAY_LOOP_COUNT; ul++ )
+	// 	{
+	// 		/* This loop is just a very crude delay implementation.  There is
+	// 		nothing to do in here.  Later exercises will replace this crude
+	// 		loop with a proper delay/sleep function. */
+	// 	}
+	// }
 }
 /*-----------------------------------------------------------*/
 /*-----------------------------------------------------------*/
