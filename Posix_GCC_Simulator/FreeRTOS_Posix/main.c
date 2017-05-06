@@ -274,7 +274,7 @@ int main( void )
 
 
 	/* Create one of the two tasks. */
-	xTaskCreate(	vTask1,		/* Pointer to the function that implements the task. */
+	xTaskCreate(	vTask2,		/* Pointer to the function that implements the task. */
 					"Task 1",	/* Text name for the task.  This is to facilitate debugging only. */
 					240,		/* Stack depth in words. */
 					NULL,		/* We are not using the task parameter. */
@@ -282,7 +282,7 @@ int main( void )
 					NULL );		/* We are not using the task handle. */
 
 	/* Create the other task in exactly the same way. */
-	//xTaskCreate( vTask2, "Task 2", 240, (void*)pcTextToTask2, 1, NULL );
+	xTaskCreate( vTask2, "Task 2", 240, (void*)pcTextToTask2, 2, NULL );
 
 	/* Start the scheduler so our tasks start executing. */
 	vTaskStartScheduler();
@@ -332,29 +332,29 @@ const portTickType xDelay100ms = 100 / portTICK_RATE_MS;
 
 void vTask2( void *pvParameters )
 {
-	//char *pcTaskName;
-/*volatile unsigned long ul;*/
+	char *pcTaskName;
+	volatile unsigned long ul;
 
-	//pcTaskName = (char*)pvParameters;
+	pcTaskName = (char*)pvParameters;
 
-	printf( "Task 2 is running and about to delete\n" );
+	//printf( "Task 2 is running and about to delete\n" );
 
-	vTaskDelete(xTask2Handle);
+	//vTaskDelete(xTask2Handle);
 
-	// /* As per most tasks, this task is implemented in an infinite loop. */
-	// for( ;; )
-	// {
-	// 	/* Print out the name of this task. */
-	// 	printf( "%s\n", pcTaskName );
+	/* As per most tasks, this task is implemented in an infinite loop. */
+	for( ;; )
+	{
+		/* Print out the name of this task. */
+		printf( "%s\n", pcTaskName );
 
-	// 	/* Delay for a period. */
-	// 	for( ul = 0; ul < mainDELAY_LOOP_COUNT; ul++ )
-	// 	{
-	// 		/* This loop is just a very crude delay implementation.  There is
-	// 		nothing to do in here.  Later exercises will replace this crude
-	// 		loop with a proper delay/sleep function. */
-	// 	}
-	// }
+		/* Delay for a period. */
+		for( ul = 0; ul < mainDELAY_LOOP_COUNT; ul++ )
+		{
+			/* This loop is just a very crude delay implementation.  There is
+			nothing to do in here.  Later exercises will replace this crude
+			loop with a proper delay/sleep function. */
+		}
+	}
 }
 /*-----------------------------------------------------------*/
 /*-----------------------------------------------------------*/
