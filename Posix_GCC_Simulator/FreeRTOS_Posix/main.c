@@ -274,15 +274,15 @@ int main( void )
 
 
 	/* Create one of the two tasks. */
-	xTaskCreate(	vTask2,		/* Pointer to the function that implements the task. */
+	xTaskCreate(	vTask1,		/* Pointer to the function that implements the task. */
 					"Task 1",	/* Text name for the task.  This is to facilitate debugging only. */
 					240,		/* Stack depth in words. */
 					NULL,		/* We are not using the task parameter. */
-					1,			/* This task will run at priority 1. */
+					2,			/* This task will run at priority 1. */
 					NULL );		/* We are not using the task handle. */
 
 	/* Create the other task in exactly the same way. */
-	xTaskCreate( vTask2, "Task 2", 240, (void*)pcTextToTask2, 2, NULL );
+	xTaskCreate( vTask2, "Task 2", 240, (void*)pcTextToTask2, 1, &xTask2Handle );
 
 	/* Start the scheduler so our tasks start executing. */
 	vTaskStartScheduler();
@@ -301,17 +301,45 @@ int main( void )
 void vTask1( void *pvParameters )
 {
 volatile unsigned long ul;
-const portTickType xDelay100ms = 100 / portTICK_RATE_MS;
+//const portTickType xDelay100ms = 100 / portTICK_RATE_MS;
 //char *pcTaskName;
+unsigned portBASE_TYPE uxPriority;
+
+/*
+This task will always run before task2 as it is created with the higher
+priority. Neither Tas1 nor task2 ever block so both will always be in either
+the Running or the Ready state.
+Query the priority at which this task is running - passing in NULL means
+"return my priority".
+*/
+uxPriority = uxTaskPriorityGet(xTask2Handle);
 
 	//pcTaskName = (char*)pvParameters;
+
 	/* As per most tasks, this task is implemented in an infinite loop. */
 	for( ;; )
 	{
 		/* Print out the name of this task. */
 		printf( "Task1 is running\n" );
 
-		xTaskCreate(vTask2, "Task 2", 240, NULL, 2, &xTask2Handle);
+		/*
+		Setting the task2 priority above the task1 priority willl cause task2 
+		to immediately start running (as then task2 will have the higher priority 
+		of the two created tasks). Note the use of the handle to task 2 
+		(xTask2Handle) in the call to vTaskPrioritySet(). Listing 24 shows how the handle
+		was obtained
+		*/
+
+		printf( "About to raise the task2 priority\r\n" );
+		vTaskPrioritySet(xTask2Handle, (uxPriority + 2));
+
+		// Task1 will only run when it has a priority higher than task2.
+		/*
+		Therefore, for this task to reach this point taks2 must already 
+		have executed and set its priority back down to below the priority 
+		of this task
+		*/
+		//xTaskCreate(vTask2, "Task 2", 240, NULL, 2, &xTask2Handle);
 
 		// not working on gcc simulator
 		//vTaskDelay(xDelay100ms);
@@ -332,10 +360,12 @@ const portTickType xDelay100ms = 100 / portTICK_RATE_MS;
 
 void vTask2( void *pvParameters )
 {
-	char *pcTaskName;
+	/*char *pcTaskName;*/
 	volatile unsigned long ul;
+	unsigned portBASE_TYPE uxPriority;
 
-	pcTaskName = (char*)pvParameters;
+	uxPriority = uxTaskPriorityGet(NULL);
+	/*pcTaskName = (char*)pvParameters;*/
 
 	//printf( "Task 2 is running and about to delete\n" );
 
@@ -345,15 +375,24 @@ void vTask2( void *pvParameters )
 	for( ;; )
 	{
 		/* Print out the name of this task. */
-		printf( "%s\n", pcTaskName );
+		printf( "Task 2 is running \r\n" );
 
-		/* Delay for a period. */
+		/*
+		Set our priority back down to its original value. Passing in NULL
+		as the task handle means "change my priority". Setting the priority
+		below that of Task1 will cause Task1 to immediately start running again
+		- pre-empting this task
+		*/
+		printf( "About to lower the task2 priority \r\n");
+		vTaskPrioritySet(NULL, ( uxPriority - 2 ) );
+
+/*		/* Delay for a period. 
 		for( ul = 0; ul < mainDELAY_LOOP_COUNT; ul++ )
 		{
 			/* This loop is just a very crude delay implementation.  There is
 			nothing to do in here.  Later exercises will replace this crude
-			loop with a proper delay/sleep function. */
-		}
+			loop with a proper delay/sleep function. 
+		}*/
 	}
 }
 /*-----------------------------------------------------------*/
