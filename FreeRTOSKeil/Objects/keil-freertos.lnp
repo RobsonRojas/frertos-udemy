@@ -6,6 +6,8 @@
 ".\objects\tasks.o"
 ".\objects\timers.o"
 ".\objects\port.o"
+".\objects\heap_4.o"
+".\objects\main.o"
 ".\objects\led_f4discovery.o"
 ".\objects\stm32f4xx_hal.o"
 ".\objects\stm32f4xx_hal_cortex.o"

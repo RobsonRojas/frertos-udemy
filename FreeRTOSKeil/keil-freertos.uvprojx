@@ -422,6 +422,16 @@
               <FileType>5</FileType>
               <FilePath>.\FreeRTOSConfig.h</FilePath>
             </File>
+            <File>
+              <FileName>heap_4.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\FreeRTOSv9.0.0\FreeRTOS\Source\portable\MemMang\heap_4.c</FilePath>
+            </File>
+            <File>
+              <FileName>main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\main.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
