@@ -1,0 +1,115 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: µVision V5.17.0.0
+Copyright (C) 2015 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: kiran nayak, self, LIC=----
+ 
+Tool Versions:
+Toolchain:       MDK-Lite  Version: 5.17
+Toolchain Path:  C:\Keil_v5\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.06 update 1 (build 61)
+Assembler:       Armasm.exe V5.06 update 1 (build 61)
+Linker/Locator:  ArmLink.exe V5.06 update 1 (build 61)
+Library Manager: ArmAr.exe V5.06 update 1 (build 61)
+Hex Converter:   FromElf.exe V5.06 update 1 (build 61)
+CPU DLL:         SARMCM3.DLL V5.17
+Dialog DLL:      DCM.DLL V1.13.4.0
+Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V2.0.18.0
+Dialog DLL:      TCM.DLL V1.14.6.0
+ 
+<h2>Project:</h2>
+C:\Users\kiran\Documents\Keil-FreeRTOS\keil-freertos.uvprojx
+Project File Date:  01/25/2017
+
+<h2>Output:</h2>
+*** Using Compiler 'V5.06 update 1 (build 61)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
+Rebuild target 'Target 1'
+compiling croutine.c...
+compiling list.c...
+compiling event_groups.c...
+compiling timers.c...
+compiling queue.c...
+compiling tasks.c...
+compiling heap_4.c...
+compiling main.c...
+compiling port.c...
+compiling stdout_USART.c...
+compiling trcHardwarePort.c...
+compiling trcBase.c...
+compiling trcKernel.c...
+compiling trcKernelPortFreeRTOS.c...
+compiling LED_NUCLEO-F446RE.c...
+compiling retarget_io.c...
+compiling trcUser.c...
+assembling startup_stm32f446xx.s...
+compiling system_stm32f4xx.c...
+linking...
+Program Size: Code=19240 RO-data=2128 RW-data=232 ZI-data=48544  
+".\Objects\keil-freertos.axf" - 0 Error(s), 0 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: ARM
+                http://www.keil.com/pack/ARM.CMSIS.4.5.0.pack
+                ARM::CMSIS:CORE:4.3.0
+                CMSIS (Cortex Microcontroller Software Interface Standard)
+   * Component: CORE Version: 4.3.0
+
+Package Vendor: Keil
+                http://www.keil.com/pack/Keil.ARM_Compiler.1.0.0.pack
+                Keil::Compiler:I/O:STDOUT:User:1.0.0
+                Keil ARM Compiler extensions
+   * Component: STDOUT Variant: User Version: 1.0.0
+
+Package Vendor: Keil
+                http://www.keil.com/pack/Keil.MDK-Middleware.6.5.0.pack
+                ::Board Support:LED:1.00 (API)
+                Keil MDK-ARM Professional Middleware for ARM Cortex-M based devices
+   * Component: LED Version: 1.00
+
+Package Vendor: Keil
+                http://www.keil.com/pack/Keil.STM32F4xx_DFP.2.10.0.pack
+                Keil::Device:Startup:2.5.0
+                STMicroelectronics STM32F4 Series Device Support, Drivers and Examples
+   * Component: Startup Version: 2.5.0
+
+Package Vendor: Keil
+                http://www.keil.com/pack/Keil.STM32NUCLEO_BSP.1.6.0.pack
+                Keil.NUCLEO-F446RE::Board Support:LED:1.1.0
+                STMicroelectronics Nucleo Boards Support and Examples
+   * Component: LED Version: 1.1.0
+
+<h2>Collection of Component include folders:</h2>
+  C:\Users\kiran\Documents\Keil-FreeRTOS\RTE
+  C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include
+  C:\Keil_v5\ARM\PACK\Keil\MDK-Middleware\6.5.0\Board
+  C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.10.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include
+
+<h2>Collection of Component Files used:</h2>
+
+   * Component: ARM::CMSIS:CORE:4.3.0
+
+   * Component: Keil::Compiler:I/O:STDOUT:User:1.0.0
+      Source file:   Source\retarget_io.c
+      Source file:   Template\stdout_user.c
+      Source file:   Template\stdout_USART.c
+      Source file:   Template\stdout_display.c
+
+   * Component: ::Board Support:LED:1.00 (API)
+      Include file:  Board\Board_LED.h
+
+   * Component: Keil::Device:Startup:2.5.0
+      Source file:   MDK\Device\Source\ARM\STM32F4xx_OTP.s
+      Include file:  Drivers\CMSIS\Device\ST\STM32F4xx\Include\stm32f4xx.h
+      Source file:   Drivers\CMSIS\Device\ST\STM32F4xx\Source\Templates\arm\startup_stm32f446xx.s
+      Source file:   Drivers\CMSIS\Device\ST\STM32F4xx\Source\Templates\system_stm32f4xx.c
+
+   * Component: Keil.NUCLEO-F446RE::Board Support:LED:1.1.0
+      Source file:   Boards\ST\NUCLEO-F446RE\Common\LED_NUCLEO-F446RE.c
+Build Time Elapsed:  00:00:16
+</pre>
+</body>
+</html>

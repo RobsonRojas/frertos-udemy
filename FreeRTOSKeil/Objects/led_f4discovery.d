@@ -69,4 +69,4 @@
 .\objects\led_f4discovery.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.11.0\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_spdifrx.h
 .\objects\led_f4discovery.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.11.0\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_dfsdm.h
 .\objects\led_f4discovery.o: C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.11.0\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_lptim.h
-.\objects\led_f4discovery.o: C:\Keil_v5\ARM\PACK\Keil\MDK-Middleware\7.4.0\Board\Board_LED.h
+.\objects\led_f4discovery.o: C:\Keil_v5\ARM\PACK\Keil\MDK-Middleware\7.4.1\Board\Board_LED.h

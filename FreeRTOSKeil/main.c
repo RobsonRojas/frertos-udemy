@@ -185,9 +185,20 @@ void vTask2( void *pvParameters );
 void vAssertCalled( unsigned long ulLine, const char * const pcFileName );
 static portBASE_TYPE xTraceRunning = pdTRUE;
 
+extern void SystemInit();
+extern void SystemCoreClockUpdate();
+extern int stdout_init();
+
 int main( void )
 {
-
+	/* essential board initialization */
+	SystemInit();
+	
+	/* this funtion initialize the mcu clock, pll will be used to generate th MCU ...*/
+	SystemCoreClockUpdate();
+	
+	/* initialize the serial i/o console, this funcion configures the DUE CONSOLE_UART*/
+	stdout_init();
 
 	/* Create one of the two tasks. */
 	xTaskCreate(	vTask1,		/* Pointer to the function that implements the task. */
@@ -198,7 +209,7 @@ int main( void )
 					NULL );		/* We are not using the task handle. */
 
 	/* Create the other task in exactly the same way. */
-	//xTaskCreate( vTask2, "Task 2", 240, NULL, 1, NULL );
+	xTaskCreate( vTask2, "Task 2", 240, NULL, 1, NULL );
 
 	/* Start the scheduler so our tasks start executing. */
 	vTaskStartScheduler();
