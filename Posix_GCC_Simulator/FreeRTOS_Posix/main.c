@@ -277,12 +277,12 @@ int main( void )
 	xTaskCreate(	vTask1,		/* Pointer to the function that implements the task. */
 					"Task 1",	/* Text name for the task.  This is to facilitate debugging only. */
 					240,		/* Stack depth in words. */
-					NULL,		/* We are not using the task parameter. */
+					pcTextToTask1,		/* We are not using the task parameter. */
 					1,			/* This task will run at priority 1. */
 					NULL );		/* We are not using the task handle. */
 
 	/* Create the other task in exactly the same way. */
-	//xTaskCreate( vTask2, "Task 2", 240, (void*)pcTextToTask2, 1, &xTask2Handle );
+	xTaskCreate( vTask1, "Task 2", 240, pcTextToTask2, 2, NULL );
 
 	/* Start the scheduler so our tasks start executing. */
 	vTaskStartScheduler();
@@ -301,9 +301,9 @@ int main( void )
 void vTask1( void *pvParameters )
 {
 volatile unsigned long ul;
-const portTickType xDelay500ms = 500 / portTICK_RATE_MS;
+//const portTickType xDelay500ms = 250 / portTICK_RATE_MS;
 
-//char *pcTaskName;
+char *pcTaskName;
 //unsigned portBASE_TYPE uxPriority;
 
 /*
@@ -315,14 +315,14 @@ Query the priority at which this task is running - passing in NULL means
 */
 //uxPriority = uxTaskPriorityGet(xTask2Handle);
 
-	//pcTaskName = (char*)pvParameters;
+	pcTaskName = (char*)pvParameters;
 
 	/* As per most tasks, this task is implemented in an infinite loop. */
 	for( ;; )
 	{
 		/* Print out the name of this task. */
-		printf( "Task1 is running\n" );
-		printf("delay: %d\n", xDelay500ms);
+		printf( "%s\n", pcTaskName );
+		//printf("delay: %d\n", xDelay500ms);
 
 		/*
 		Setting the task2 priority above the task1 priority willl cause task2 
@@ -344,7 +344,7 @@ Query the priority at which this task is running - passing in NULL means
 		//xTaskCreate(vTask2, "Task 2", 240, NULL, 2, &xTask2Handle);
 
 		// not working on gcc simulator
-		vTaskDelay(xDelay500ms);
+		vTaskDelay(250 / portTICK_RATE_MS);
 
 		/* Delay for a period. */
 		/*for( ul = 0; ul < mainDELAY_LOOP_COUNT; ul++ )
