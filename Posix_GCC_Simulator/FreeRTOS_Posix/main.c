@@ -199,80 +199,6 @@ xTaskHandle xTask2Handle;
 
 int main( void )
 {
-// xTaskHandle hUDPTask, hMQTask, hSerialTask;
-// xQueueHandle xUDPReceiveQueue = NULL, xIPCQueue = NULL, xSerialRxQueue = NULL;
-// int iSocketReceive = 0;
-// struct sockaddr_in xReceiveAddress;
-
-// 	/* Initialise hardware and utilities. */
-// 	vParTestInitialise();
-// 	vPrintInitialise();
-
-// 	/* Initialise Receives sockets. */
-// 	xReceiveAddress.sin_family = AF_INET;
-// 	xReceiveAddress.sin_addr.s_addr = INADDR_ANY;
-// 	xReceiveAddress.sin_port = htons( mainUDP_PORT );
-
-// 	/* Set-up the Receive Queue and open the socket ready to receive. */
-// 	xUDPReceiveQueue = xQueueCreate( 2, sizeof ( xUDPPacket ) );
-// 	iSocketReceive = iSocketOpenUDP( vUDPReceiveAndDeliverCallback, xUDPReceiveQueue, &xReceiveAddress );
-
-// 	/* Remember to open a whole in your Firewall to be able to receive!!! */
-
-// 	/* Set-up the IPC Message queue. */
-// 	xIPCQueue = xQueueCreate( 2, sizeof( xMessageObject ) );
-// 	xMessageQueuePipeHandle = xPosixIPCOpen( "/Local_Loopback", vMessageQueueReceive, xIPCQueue );
-// 	vPosixIPCEmpty( xMessageQueuePipeHandle );
-
-// 	/* Set-up the Serial Console Echo task */
-// 	if ( pdTRUE == lAsyncIOSerialOpen( "/dev/ttyS0", &iSerialReceive ) )
-// 	{
-// 		xSerialRxQueue = xQueueCreate( 2, sizeof ( unsigned char ) );
-// 		(void)lAsyncIORegisterCallback( iSerialReceive, vAsyncSerialIODataAvailableISR, xSerialRxQueue );
-// 	}
-
-// 	/* CREATE ALL THE DEMO APPLICATION TASKS. */
-// 	vStartMathTasks( tskIDLE_PRIORITY );
-// 	vStartPolledQueueTasks( mainQUEUE_POLL_PRIORITY );
-// 	vCreateBlockTimeTasks();
-// 	vStartSemaphoreTasks( mainSEMAPHORE_TASK_PRIORITY );
-// 	vStartMultiEventTasks();
-// 	vStartQueuePeekTasks();
-// 	vStartBlockingQueueTasks( mainQUEUE_BLOCK_PRIORITY );
-// #if mainCPU_INTENSIVE_TASKS == 1
-// 	vStartRecursiveMutexTasks();
-// 	vStartDynamicPriorityTasks();
-// 	vStartGenericQueueTasks( mainGENERIC_QUEUE_PRIORITY );
-// 	vStartCountingSemaphoreTasks();
-// #endif
-
-// 	/* Create the co-routines that communicate with the tick hook. */
-// 	vStartHookCoRoutines();
-
-// 	/* Create the "Print" task as described at the top of the file. */
-// 	xTaskCreate( vErrorChecks, "Print", configMINIMAL_STACK_SIZE, NULL, mainPRINT_TASK_PRIORITY, NULL );
-
-// 	/* This task has to be created last as it keeps account of the number of tasks
-// 	it expects to see running. */
-// #if mainUSE_SUICIDAL_TASKS_DEMO == 1
-// 	vCreateSuicidalTasks( mainCREATOR_TASK_PRIORITY );
-// #endif
-
-// 	/* Create a Task which waits to receive messages and sends its own when it times out. */
-// 	xTaskCreate( prvUDPTask, "UDPRxTx", configMINIMAL_STACK_SIZE, xUDPReceiveQueue, tskIDLE_PRIORITY + 1, &hUDPTask );
-
-// 	/* Create a Task which waits to receive messages and sends its own when it times out. */
-// 	xTaskCreate( prvMessageQueueTask, "MQ RxTx", configMINIMAL_STACK_SIZE, xIPCQueue, tskIDLE_PRIORITY + 1, &hMQTask );
-
-// 	/* Create a Task which waits to receive bytes. */
-// 	xTaskCreate( prvSerialConsoleEchoTask, "SerialRx", configMINIMAL_STACK_SIZE, xSerialRxQueue, tskIDLE_PRIORITY + 4, &hSerialTask );
-
-// 	/* Set the scheduler running.  This function will not return unless a task calls vTaskEndScheduler(). */
-// 	vTaskStartScheduler();
-
-// 	return 1;
-
-
 	/* Create one of the two tasks. */
 	xTaskCreate(	vTask1,		/* Pointer to the function that implements the task. */
 					"Task 1",	/* Text name for the task.  This is to facilitate debugging only. */
@@ -291,72 +217,30 @@ int main( void )
 	running.  If we do reach here then it is likely that there was insufficient
 	heap available for the idle task to be created. */
 	for( ;; );
-
-
-
 }
 /*-----------------------------------------------------------*/
 /*-----------------------------------------------------------*/
 
 void vTask1( void *pvParameters )
 {
-volatile unsigned long ul;
-//const portTickType xDelay500ms = 250 / portTICK_RATE_MS;
+	char *pcTaskName;
 
-char *pcTaskName;
-//unsigned portBASE_TYPE uxPriority;
-
-/*
-This task will always run before task2 as it is created with the higher
-priority. Neither Tas1 nor task2 ever block so both will always be in either
-the Running or the Ready state.
-Query the priority at which this task is running - passing in NULL means
-"return my priority".
-*/
-//uxPriority = uxTaskPriorityGet(xTask2Handle);
+	// xtask get tick count is not working
+	const portTickType xLastWakeTime = xTaskGetTickCount();
 
 	pcTaskName = (char*)pvParameters;
+	//xLastWakeTime = xTaskGetTickCount();
 
 	/* As per most tasks, this task is implemented in an infinite loop. */
 	for( ;; )
 	{
 		/* Print out the name of this task. */
 		printf( "%s\n", pcTaskName );
-		//printf("delay: %d\n", xDelay500ms);
-
-		/*
-		Setting the task2 priority above the task1 priority willl cause task2 
-		to immediately start running (as then task2 will have the higher priority 
-		of the two created tasks). Note the use of the handle to task 2 
-		(xTask2Handle) in the call to vTaskPrioritySet(). Listing 24 shows how the handle
-		was obtained
-		*/
-
-		//printf( "About to raise the task2 priority\r\n" );
-		//vTaskPrioritySet(xTask2Handle, (uxPriority + 2));
-
-		// Task1 will only run when it has a priority higher than task2.
-		/*
-		Therefore, for this task to reach this point taks2 must already 
-		have executed and set its priority back down to below the priority 
-		of this task
-		*/
-		//xTaskCreate(vTask2, "Task 2", 240, NULL, 2, &xTask2Handle);
 
 		// not working on gcc simulator
-		vTaskDelay(250 / portTICK_RATE_MS);
-
-		/* Delay for a period. */
-		/*for( ul = 0; ul < mainDELAY_LOOP_COUNT; ul++ )
-		{
-			/* This loop is just a very crude delay implementation.  There is
-			nothing to do in here.  Later exercises will replace this crude
-			loop with a proper delay/sleep function. *
-		}*/
+		printf("%d\n", xLastWakeTime);
+		vTaskDelayUntil(&xLastWakeTime, (250 / portTICK_RATE_MS));
 	}
-
-	/* we have not used vTaskDelete() function here */
-
 }
 /*-----------------------------------------------------------*/
 
@@ -388,12 +272,12 @@ void vTask2( void *pvParameters )
 		printf( "About to lower the task2 priority \r\n");
 		vTaskPrioritySet(NULL, ( uxPriority - 2 ) );
 
-/*		/* Delay for a period. 
+/*		/* Delay for a period.
 		for( ul = 0; ul < mainDELAY_LOOP_COUNT; ul++ )
 		{
 			/* This loop is just a very crude delay implementation.  There is
 			nothing to do in here.  Later exercises will replace this crude
-			loop with a proper delay/sleep function. 
+			loop with a proper delay/sleep function.
 		}*/
 	}
 }
